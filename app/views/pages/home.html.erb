@@ -1,0 +1,125 @@
+<div class="d-flex justify-content-end">
+  <%= link_to 'Logout', destroy_user_session_path, method: :delete, class: "btn btn-primary" %>
+</div>
+<div class="d-flex justify-content-center">
+  <div>
+    <h1> Slot machine </h1>
+  </div>
+</div>
+<br>
+<div class="d-flex justify-content-center">
+  <div class="justify-content-center">
+    <h5>Credits: <span id='credits'> <%= @credit %> </span></h5>
+  </div>
+  <div class="justify-content-center ml-4">
+    <button class="btn btn-primary" id="cashOut">Cash Out</button>
+  </div>
+</div>
+<br>
+<div class="d-flex justify-content-center">
+  <table class='table table-sm table-bordered'>
+    <thead>
+      <tr>
+        <th scope='col' class="slot_cls changed_ele" id='slot1'>X</th>
+        <th scope='col' class="slot_cls changed_ele" id='slot2'>X</th>
+        <th scope='col' class="slot_cls changed_ele" id='slot3'>X</th>
+      </tr>
+    </thead>
+  </table>
+
+</div>
+<br>
+<div class="d-flex justify-content-center">
+  <button class="btn btn-primary" id="runMachine">Spin Roll</button>
+</div>
+<br>
+
+<br>
+<div class="d-flex justify-content-center">
+  <div>
+    <p>Rules:
+      <ul>
+        <li> Player have to get the same symbol in each block.</li>
+        <li> There are 4 possible symbols: C (cherry), L (lemon), O (orange), and W (watermelon).</li>
+        <li> Credits are different different for each symbols : 
+          <ul>
+            <li> C - 10 credit </li>
+            <li> L - 20 credit </li>
+            <li> O - 30 credit </li>
+            <li> W - 40 credit </li>
+          </ul>
+        </li>
+      </ul>
+
+    </p>
+  </div>
+</div>
+
+<script>
+  function clearInputs() {
+    $('#slot1').text('X')
+    $('#slot2').text('X')
+    $('#slot3').text('X')
+    $('#credits').text('0')
+  }
+
+  function moveButton(){
+    bodyWidth = $(window).width()
+    bodyHeight = $(window).height()
+    newWidth = Math.floor((Math.random()*(bodyWidth / 2) ));
+    newHeight = Math.floor((Math.random()*(bodyHeight / 2)));
+    $('#cashOut').css({left: newWidth, top: newHeight})
+  };
+
+  $("#cashOut").hover(function() {
+    var randomNumber = Math.random();
+    if (randomNumber < 0.5) {
+      moveButton()
+    } else if(randomNumber < 0.9) {
+      $('#cashOut').prop("disabled", "disabled")
+      $('#cashOut').off('hover')
+    } else {
+      $('#cashOut').removeAttr("disabled");
+      $('#cashOut').off('hover')
+    }
+  });
+
+  $("#cashOut").click(function() {
+    $.get('/pages/cash_out.js', {}, function(){
+      alert("Congratulations, You credits are successfully added in your account!")
+    })
+  });
+
+  $("#runMachine").click(function() {
+    btn = $(this);
+    btn.attr("disabled", "disabled");
+
+    $(".slot_cls").toggleClass('changed_ele normal_ele')
+    $('#cashOut').prop("disabled", "disabled")
+    
+
+    $.get('/pages/run_machine.js', {}, function(response){
+      if (response.message) {
+        clearInputs()
+        alert("Sorry, you have reached your limits!!!")
+      } else {
+        setTimeout(() => {
+          $('#slot1').text(response.slot1)
+          $('#slot1').toggleClass('changed_ele normal_ele');
+        }, 1000);
+        setTimeout(() => {
+          $('#slot2').text(response.slot2)
+          $('#slot2').toggleClass('changed_ele normal_ele');
+        }, 2000);
+        setTimeout(() => {
+          $('#slot3').text(response.slot3)
+          $('#slot3').toggleClass('changed_ele normal_ele');
+          btn.removeAttr("disabled")
+          $('#credits').text(response.credit)
+          $('#cashOut').removeAttr("disabled");
+        }, 3000);
+      }
+    })
+  })
+
+</script>
